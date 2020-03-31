@@ -7,6 +7,29 @@
 const express = require('express')
 const app = express();
 
+/**
+ * proteger nossa aplicação de ataques, utilizaremos o CORS – sigla para Cross-origin resource sharing
+ * – que nos permite determinar uma origem de onde aceitaremos as requests e bloquear as que não são bem-vindas.
+ * Rodar no terminal 'yarn add cors'
+ */
+const cors = require("cors");
+app.use(
+  cors({
+    origin: "http://localhost:3000"
+  })
+);
+
+/**
+ * utilização da middleware morgan
+ * onde todas as requisições, que chegarem ao nosso servidor, criarão um registro (log)
+ * contendo informações importantes como IP, hora, método, URL e status para que possamos corrigir bugs,
+ * analisar e tomar decisões em cima dos dados.
+ * 
+ * Para isso digitar no terminal 'yarn add morgan'
+ */
+const morgan = require('morgan');
+app.use(morgan("common"));
+
 //passar a request como json:
 app.use(express.json());
 
@@ -21,6 +44,23 @@ app.use(express.json());
 app.get("/", (request, response) => {
   response.send("Hello World!!")
 })
+
+
+
+/**
+ * Criando um middleware para mostrar os erros que forem encontrados durante o desenvolvimento
+ * sem ser a falta de uma rota;
+ */
+
+app.use((error, request, response, next) => {
+  const statusCode = response.statusCode === 200 ? 500 : response.statusCode;
+
+  response.statusCode = statusCode;
+  response.json({
+    message: error.message,
+    stack: process.env.NODE_ENV === "production" ? ":p" : error.stack
+  });
+});
 
 /**
  * Middleware para not-found middleware
